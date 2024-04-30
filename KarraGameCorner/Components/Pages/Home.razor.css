@@ -1,0 +1,13 @@
+﻿#compain-banner {
+    background-color: var(--text-color1);
+}
+
+    #compain-banner p {
+        margin-top: 5px;
+        color: var(--text-color2);
+        font-weight: bold;
+    }
+
+    #compain-banner a {
+        color: var(--accent-color2);
+    }

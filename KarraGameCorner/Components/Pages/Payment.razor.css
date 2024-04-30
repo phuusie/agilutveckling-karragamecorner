@@ -1,0 +1,144 @@
+﻿body {
+    background-color: #2D2D30;
+    color: #C2C2C2;
+}
+
+.container {
+    max-width: 1000px;
+    margin-top: 30px;
+}
+
+.form-label {
+    color: #8A2BE2;
+}
+
+.form-control {
+    background-color: #333336;
+    border: 1px solid #444;
+    color: white;
+}
+
+    .form-control:focus {
+        border-color: #5D3FD3;
+        box-shadow: 0 0 5px rgba(93, 63, 211, 0.5);
+    }
+
+.btn-primary {
+    background-color: #5D3FD3;
+    border: none;
+}
+
+    .btn-primary:hover {
+        background-color: #774DD6;
+    }
+
+
+.custom-checkbox {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-color: #333;
+    border: 1px solid #5D3FD3;
+    position: relative;
+}
+
+    .custom-checkbox.checked::after {
+        content: "";
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 6px;
+        height: 12px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg);
+    }
+
+#checkout-button {
+    background: linear-gradient(45deg, #5D3FD3, #774DD6);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+.cart-item-card {
+    background: #333336;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    color: white; 
+    display: block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+
+    .cart-item-card:hover {
+        background-color: #29292b;
+    }
+
+    .cart-item-card .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cart-item-card img {
+        max-width: 100%;
+        max-height: 100px; 
+        border-radius: 5px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        margin-right: 10px;
+    }
+
+.img-container {
+    padding: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.cart-item-card:hover img {
+    transform: scale(1.5);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+@media (max-width: 576px) {
+    .container {
+        width: 100%;
+        padding: 0;
+    }
+
+    .form, .cart-item-card {
+        padding: 20px;
+    }
+
+    #klarna-checkout-container .row {
+        flex-direction: column;
+    }
+
+    .cart-item-card img {
+        max-height: 75px;
+    }
+
+    h2, .form-label {
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .cart-item-card .row {
+        flex-direction: row;
+    }
+
+    .cart-item-card img {
+        max-height: 90px;
+    }
+}
+
+@media (hover: hover) {
+    .cart-item-card:hover img {
+        transform: scale(1.5);
+    }
+}

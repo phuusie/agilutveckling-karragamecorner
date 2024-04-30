@@ -1,0 +1,275 @@
+﻿@page "/store"
+@using KarraGameCorner.Shared.DTOs
+@using KarraGameCorner.Interfaces
+@using KarraGameCorner.DataAccess.Enums
+@using Blazored.LocalStorage
+@using KarraGameCorner.Components.Layout
+@inject NavigationManager NavigationManager
+@inject IProductService<ProductDTO> ProductService
+@inject ICartService CartService
+@inject ICategoryService<CategoryDTO> CategoryService
+
+<div id="toast-popup">
+    <div class="toast show" style="display: @(IsAddedToCart ? "block" : "none")">
+        <div class="toast-header">
+            <div class="me-auto"><span>@SelectedProduct.Name</span></div>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" @onclick="() => { IsAddedToCart = false; }"></button>
+        </div>
+        <div class="toast-body">
+            @SelectedProduct.Name har lagts till i din kundvagn.
+        </div>
+    </div>
+</div>
+
+<div id="store-heading" class="col d-flex justify-content-center align-content-center mt-5">
+    <h1>KÄRRA GAMES CORNER SHOP</h1>
+    <div class="frame">
+    </div>
+</div>
+
+<div id="sort" class="col">
+    <select @onchange="HandleSortChange">
+        @foreach (var sort in Sorting)
+        {
+            <option id="@sort.Replace(" ", "-")" value="@sort">@sort</option>
+        }
+    </select>
+</div>
+<div class="row d-flex p-5 product-view">
+    <div id="category-bar" class="col-2">
+        <button id="category-button" type="button" class="collapsible" @onclick="() => ToggleCollapsibleState(1)">Kategori</button>
+        @if (CollapsibleStates[1])
+        {
+            <div class="category-box @($"category-box {(CollapsibleStates[1] ? "fade-in" : "")}")">
+                @foreach (var category in Categories)
+                {
+                    <div>
+                        <input type="checkbox" id="@category.Name.Replace(" ", "-")" value="@category.Id"
+                               @onchange="(e) => HandleCategoryChange(e, category.Id)"/>
+                        <label for="@category.Name.Replace(" ", "-")">@category.Name</label>
+                    </div>
+                }
+            </div>
+        }
+        <button id="age-bracket-button" type="button" class="collapsible" @onclick="() => ToggleCollapsibleState(2)">Åldersgrupp</button>
+        @if (CollapsibleStates[2])
+        {
+            <div class="category-box @($"category-box {(CollapsibleStates[2] ? "fade-in" : "")}")">
+                @foreach (var esbn in Enum.GetValues(typeof(EntertainmentSoftwareRatingBoard)))
+                {
+                    <div><input type="checkbox" id="@esbn"/><label for="@esbn">@esbn</label></div>
+                }
+            </div>
+        }
+        <button id="price-button" type="button" class="collapsible">Pris</button>
+    </div>
+    <div class="col">
+        <div class="divider mb-3"></div>
+        <div id="product-list" class="col d-flex">
+            @foreach (var product in Products)
+            {
+                <div class="container">
+                    <div class="card">
+                        <div id="price-tag">
+                            @if (product.Price != 0)
+                            {
+                                <h3>
+                                    <strong>@product.Price KR</strong>
+                                </h3>
+                            }
+                            else
+                            {
+                                <h3><strong>Gratis</strong></h3>
+                            }
+                        </div>
+                        <div class="imgBx" @onclick="() => NavigateToProduct(product.Id.ToString())">
+                            <img src="@product.GetBlobSasUrl()" />
+                        </div>
+                        <div class="contentBx">
+                            <h2>@product.Name</h2>
+                            <div class="review">
+                                @for (int i = 0; i < 5; i++)
+                                {
+                                    <span id="star-rating-@i" class="material-symbols-outlined">
+                                        star
+                                    </span>
+                                }
+                            </div>
+                            <div class="mt-3">
+                                @if (product.Price != 0)
+                                {
+                                    <h3 id="product-price">
+                                        <strong>@product.Price.ToString("0.00")KR</strong>
+                                    </h3>
+                                }
+                                else
+                                {
+                                    <h3><strong>Gratis</strong></h3>
+                                }
+                            </div>
+                            <div class="col d-flex justify-content-center">
+                                <div>
+                                    <button id="add-to-cart-button" @onclick="() => AddToCart(product)">
+                                        <span id="add-to-cart-button" class="material-symbols-outlined">
+                                            shopping_cart
+                                        </span>
+                                    </button>
+                                    <button title="Favoriter är under utveckling..">
+                                        <span id="add-to-wishlist-button" class="material-symbols-outlined">
+                                            favorite
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    List<ProductDTO> Products { get; set; } = new();
+    List<CategoryDTO> Categories { get; set; } = new();
+    List<int> SelectedCategories { get; set; } = new();
+    CartDTO CartItems { get; set; } = new();
+    ProductDTO SelectedProduct { get; set; } = new();
+    CartItemDTO? CartItem { get; set; } = new();
+    string SortingOrder { get; set; } = "Sortering";
+    bool IsAddedToCart { get; set; } = false;
+
+    Dictionary<int, bool> CollapsibleStates = new()
+    {
+        { 1, false },
+        { 2, false },
+        { 3, false }
+    };
+
+    List<string> Sorting = new()
+    {
+        "Sortering", "Namn stigande", "Namn fallande", "Pris stigande", "Pris fallande"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnChange += UpdateLocalStorage;
+        await LoadProducts();
+        await LoadCategories();
+        await ApplySort();
+        await FilterProducts();
+    }
+
+    async Task LoadProducts()
+    {
+        Products = await ProductService.GetAllProducts();
+    }
+
+    async Task LoadCategories()
+    {
+        var categories = await CategoryService.GetAllCategories();
+        Categories = categories.OrderBy(c => c.Name).ToList();
+    }
+
+    private async void UpdateLocalStorage()
+    {
+        CartItems = await CartService.GetCart();
+        StateHasChanged();
+    }
+
+    async Task AddToCart(ProductDTO product)
+    {
+        CartItem = new CartItemDTO
+        {
+            Id = product.Id,
+            Product = product,
+            Quantity = 1
+        };
+
+        await CartService.AddToCart(CartItem);
+        await CartService.LoadCart();
+        UpdateLocalStorage();
+        SelectedProduct = product;
+        IsAddedToCart = true;
+        await HideToastAfterDelay();
+    }
+
+    async Task HideToastAfterDelay()
+    {
+        await Task.Delay(1500);
+        IsAddedToCart = false;
+        StateHasChanged();
+    }
+
+    void ToggleCollapsibleState(int index)
+    {
+        CollapsibleStates[index] = !CollapsibleStates[index];
+    }
+
+    void NavigateToProduct(string productId)
+    {
+        NavigationManager.NavigateTo($"/Product/{productId}");
+    }
+
+    async Task HandleSortChange(ChangeEventArgs e)
+    {
+        SortingOrder = e.Value.ToString();
+        await ApplySort();
+    }
+
+    async Task ApplySort()
+    {
+        switch (SortingOrder)
+        {
+            case "Namn stigande":
+                Products = Products.OrderBy(p => p.Name).ToList();
+                break;
+            case "Namn fallande":
+                Products = Products.OrderByDescending(p => p.Name).ToList();
+                break;
+            case "Pris stigande":
+                Products = Products.OrderBy(p => p.Price).ToList();
+                break;
+            case "Pris fallande":
+                Products = Products.OrderByDescending(p => p.Price).ToList();
+                break;
+            case "Sortering":
+                Products = await ProductService.GetAllProducts();
+                break;
+        }
+
+        StateHasChanged();
+    }
+
+    async Task HandleCategoryChange(ChangeEventArgs e, int categoryId)
+    {
+        bool isChecked = (bool)e.Value;
+        if (isChecked && !SelectedCategories.Contains(categoryId))
+        {
+            SelectedCategories.Add(categoryId);
+        }
+        else if (!isChecked && SelectedCategories.Contains(categoryId))
+        {
+            SelectedCategories.Remove(categoryId);
+        }
+
+        await FilterProducts();
+    }
+
+    async Task FilterProducts()
+    {
+        await LoadProducts();
+
+        if (SelectedCategories.Any())
+        {
+            Products = Products.Where(p => p.Categories.Any(c => SelectedCategories.Contains(c.CategoryId))).ToList();
+        }
+        else
+        {
+            Products = Products.Where(p => true).ToList();
+        }
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,9 @@
+Öppettider
+
+Måndag : 08.00 - 21.00
+Tisdag : 08.00 - 21.00
+Onsdag : 08.00 - 21.00
+Torsdag : 08.00 - 21.00
+Fredag : 09.00 - 21.00
+Lördag : 10.00 - 20.00
+Söndag : 10.00 - 20.00

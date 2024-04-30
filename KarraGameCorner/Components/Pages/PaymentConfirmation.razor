@@ -1,0 +1,51 @@
+﻿@page "/payment-confirmation"
+@using System.Web
+@using KarraGameCorner.Interfaces
+@using KarraGameCorner.Services
+@using KarraGameCorner.Shared.DTOs
+@using Microsoft.AspNetCore.WebUtilities
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+@inject KlarnaCheckoutService KlarnaCheckoutService
+@inject ICartService CartService
+
+<div class="confirmation-container">
+    <div class="confirmation-card">
+        <img src="logo_KGC_svart.png" alt="Success" class="confirmation-icon" />
+        <h2>Payment Successful!</h2>
+        <p>Your order has been processed.</p>
+        <button class="btn-primary" @onclick="NavigateHome">Continue Shopping</button>
+    </div>
+</div>
+
+
+
+@code {
+    public CartDTO CartItems { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnChange += UpdateLocalStorage;
+    }
+
+    private async void UpdateLocalStorage()
+    {
+        CartItems = await CartService.GetCart();
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CartService.RemoveCart();
+            UpdateLocalStorage();
+        }
+    }
+
+    private void NavigateHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}
+

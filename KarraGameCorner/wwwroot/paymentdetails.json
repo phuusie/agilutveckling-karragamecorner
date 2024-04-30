@@ -1,0 +1,31 @@
+{
+  "purchase_country": "SE",
+  "purchase_currency": "SEK",
+  "locale": "sv-SV",
+  "order_amount": 75000,
+  "order_tax_amount": 15000,
+  "order_lines": [
+    {
+      "name": "Helldivers 2",
+      "quantity": 1,
+      "unit_price": 50000.0,
+      "tax_rate": 2500,
+      "total_amount": 50000,
+      "total_tax_amount": 10000
+    },
+    {
+      "name": "The Elder of Scrolls Online",
+      "quantity": 1,
+      "unit_price": 25000.0,
+      "tax_rate": 2500,
+      "total_amount": 25000,
+      "total_tax_amount": 5000
+    }
+  ],
+  "merchant_urls": {
+    "terms": "https://localhost:7063/payment",
+    "checkout": "https://localhost:7063/payment",
+    "confirmation": "https://localhost:7063/payment-confirmation",
+    "push": "https://localhost:7063/payment"
+  }
+}

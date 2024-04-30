@@ -1,0 +1,57 @@
+﻿@using KarraGameCorner.Shared.DTOs
+@using KarraGameCorner.Interfaces
+@inject IProductService<ProductDTO> ProductService
+@inject NavigationManager NavigationManager
+
+<div id="product-column" class="container mb-5">
+    <div class="row d-flex justify-content">
+        @foreach(var feature in FeaturedProducts)
+        {
+            var sanitizedKey = feature.Key.Replace(" ", "-").ToLower();
+            var uniqueId = $"{sanitizedKey}-column";
+
+            <div class="col-lg-4 mt-5">
+                <h2 id="featured-title" class="section-title mb-5 mt-5">@feature.Key</h2>
+                <div id="@uniqueId" class="row">
+                    @foreach(var product in feature.Value)
+                    {
+                        <div class="row featured-product" @onclick="() => NavigateToProduct(product.Id.ToString())">
+                            <div class="product-card col d-flex">
+                                <img src="@product.GetBlobSasUrl()" alt="@product.Name"/>
+                                <div class="col m-2">
+                                    <h4>@product.Name</h4>
+                                    @if (product.Price != 0)
+                                    {
+                                        <p>@product.Price.ToString("0.00")Kr</p>
+                                    }
+                                    else
+                                    {
+                                        <p>Gratis</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+
+    Dictionary<string, List<ProductDTO>> FeaturedProducts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        FeaturedProducts["Mest sålda"] = await ProductService.GetTopSelling();
+        FeaturedProducts["Kommande"] = await ProductService.GetNewArrivals();
+        FeaturedProducts["Vi rekommenderar"] = await ProductService.GetRecommended();
+    }
+
+    void NavigateToProduct(string id)
+    {
+        NavigationManager.NavigateTo($"/product/{id}");
+    }
+
+}

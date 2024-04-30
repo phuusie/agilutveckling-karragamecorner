@@ -1,0 +1,192 @@
+﻿@page "/payment"
+@using KarraGameCorner.Services
+@using KarraGameCorner.Interfaces
+@using KarraGameCorner.Klarna
+@using KarraGameCorner.Shared.DTOs
+@using Microsoft.AspNetCore.WebUtilities
+@inject IJSRuntime JsRuntime
+@inject KlarnaCheckoutService KlarnaCheckoutService
+@inject IWebHostEnvironment WebHostEnvironment
+@inject IProductService<ProductDTO> ProductService
+@inject ICartService CartService
+@inject ICartItemService<CartItemDTO> CartItemService
+@inject NavigationManager NavigationManager
+
+
+<EditForm Model="@billingAddress" OnValidSubmit="LoadKlarnaCheckOut">
+    <div id="klarna-checkout-container" class="container mt-4">
+        <div class="row">
+            <div  class="col form p-5">
+                <h2 class="text-white mb-4">Billing Address</h2>
+                <div class="mb-3">
+                    <label for="emailAddress" class="form-label">Email Address</label>
+                    <InputText @bind-Value="billingAddress.Email" class="form-control" id="emailAddress" />
+                </div>
+                <div class="mb-3">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <InputText @bind-Value="billingAddress.FirstName" class="form-control" id="firstName" />
+                </div>
+                <div class="mb-3">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <InputText @bind-Value="billingAddress.LastName" class="form-control" id="lastName" />
+                </div>
+                <div class="mb-3">
+                    <label for="streetAddress" class="form-label">Street Address</label>
+                    <InputText @bind-Value="billingAddress.StreetAddress" class="form-control" id="streetAddress" />
+                </div>
+                <div class="mb-3">
+                    <label for="city" class="form-label">City</label>
+                    <InputText @bind-Value="billingAddress.City" class="form-control" id="city" />
+                </div>
+                <div class="mb-3">
+                    <label for="postalCode" class="form-label">Postal Code</label>
+                    <InputText @bind-Value="billingAddress.PostalCode" class="form-control" id="postalCode" />
+                </div>
+                <div class="mb-3">
+                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <InputText @bind-Value="billingAddress.PhoneNumber" class="form-control" id="phoneNumber" />
+                </div>
+                <input class="custom-checkbox" type="checkbox" @bind="isChecked"/>
+                <a href="/villkor">Allmäna villkor</a>
+                <br/>
+                <br/>
+                <button type="submit" id="checkout-button" class="btn btn-primary">Checkout</button>
+            </div>
+            <div class="col p-5">
+                <h2 class="text-white mb-4">Your Cart</h2>
+                <div>
+                    @foreach (var item in CartItems.Items)
+                    {
+                        <div class="cart-item-card">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img src="@item.Product.GetBlobSasUrl()"/>
+                                </div>
+                                <div class="col-md-4">@item.Product.Name</div>
+                                <div class="col-md-3">@item.Quantity</div>
+                                <div class="col-md-3"> @((item.Product.Price * item.Quantity).ToString("0.00"))kr</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<script>
+    window.renderSnippet = function (htmlSnippet) {
+        var checkoutContainer = document.getElementById('klarna-checkout-container');
+        checkoutContainer.innerHTML = htmlSnippet;
+        var scriptTags = checkoutContainer.getElementsByTagName('script');
+        Array.from(scriptTags).forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.text = oldScript.text;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+        
+    }
+</script>
+
+
+
+@code {
+
+    public class BillingAddress
+    {
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string StreetAddress { get; set; }
+        public string City { get; set; }
+        public string PostalCode { get; set; }
+        public string PhoneNumber { get; set; }
+    }
+
+    private bool isChecked = false;
+
+    private BillingAddress billingAddress = new();
+
+    public KlarnaCreateOrderResponseDto KlarnaCreateOrderResponseDto { get; set; }
+
+    public CartDTO CartItems { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnChange += UpdateLocalStorage;
+    }
+
+    private async void UpdateLocalStorage()
+    {
+        CartItems = await CartService.GetCart();
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UpdateLocalStorage();
+        }
+    }
+
+    private async Task LoadKlarnaCheckOut()
+    {
+        if (isChecked)
+        {
+            var klarnaOrderLines = new List<KlarnaOrderLinesDto>();
+
+            foreach (var item in CartItems.Items)
+            {
+                var klarnaProduct = new KlarnaOrderLinesDto()
+                {
+                    name = item.Product.Name,
+                    quantity = item.Quantity,
+                    tax_rate = 2500,
+                    unit_price = (decimal)(item.Product.Price * 100),
+                    total_amount = (decimal)(item.Product.Price * item.Quantity * 100),
+                    total_tax_amount = (decimal)(item.Product.Price * item.Quantity * 0.20 * 100)
+
+                };
+
+                klarnaOrderLines.Add(klarnaProduct);
+            }
+
+            var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+
+            var order = new KlarnaCreateOrderRequestDto
+            {
+                locale = "sv-SV",
+                purchase_country = "SE",
+                purchase_currency = "SEK",
+                order_amount = (decimal)(CartItems.Items.Sum(item => item.Product.Price * item.Quantity) * 100),
+                order_tax_amount = (decimal)(CartItems.Items.Sum(item => item.Product.Price * item.Quantity * 0.20) * 100),
+                order_lines = klarnaOrderLines,
+                merchant_urls = new KlarnaMerchantUrlsDto
+                {
+                    terms = $"{baseUri}/payment",
+                    checkout = $"{baseUri}/payment",
+                    confirmation = $"{baseUri}/payment-confirmation",
+                    push = $"{baseUri}/payment"
+                },
+                billing_address = new KlarnaBillingAddressDto
+                {
+                    email = billingAddress.Email,
+                    given_name = billingAddress.FirstName,
+                    family_name = billingAddress.LastName,
+                    street_address = billingAddress.StreetAddress,
+                    postal_code = billingAddress.PostalCode,
+                    city = billingAddress.City,
+                    phone = billingAddress.PhoneNumber,
+                    country = "SE",
+                    title = ""
+                }
+            };
+
+            KlarnaCreateOrderResponseDto = await KlarnaCheckoutService.CreateKlarnaCheckoutSession(order);
+
+            await JsRuntime.InvokeVoidAsync("renderSnippet", KlarnaCreateOrderResponseDto.html_snippet);
+        }
+    }
+
+}

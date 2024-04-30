@@ -1,0 +1,19 @@
+﻿@page "/"
+@using KarraGameCorner.Components.Assets
+@using KarraGameCorner.Shared.DTOs
+@using KarraGameCorner.Interfaces
+@inject IProductService<ProductDTO> ProductService
+
+<div id="compain-banner">
+    <div class="d-flex justify-content-center align-items-center">
+        <p>Missa INTE våra erbjudanden! <a href="/login" id="compain-banner-register">Registrera dig här.</a></p>
+    </div>
+</div>
+
+<Hightlight />
+
+<Features />
+
+@code {
+
+}

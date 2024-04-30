@@ -1,0 +1,288 @@
+﻿@using KarraGameCorner.Shared.DTOs
+@using KarraGameCorner.Interfaces
+@using Blazored.LocalStorage
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IProductService<ProductDTO> ProductService
+@inject ICartService CartService
+@inject ICartItemService<CartItemDTO> CartItemService
+
+<section id="header" @onclick="HideSearchResults">
+    <div id="header-navigation-bar" class="row">
+        <nav id="header-navbar">
+            <div class="row d-flex">
+                <input id="sidebar-active" type="checkbox">
+                <label for="sidebar-active" class="open-sidebar-button">
+                    <span class="material-symbols-outlined">
+                        menu
+                    </span>
+                </label>
+                <label id="overlay" for="sidebar-active"></label>
+                <div id="logo" class="col-2">
+                    <a href="/">
+                        <img src="logo_KGC_svart.png" />
+                    </a>
+                </div>
+                <div id="links" class="col d-flex justify-content-center align-items-center">
+                    <label for="sidebar-active" class="close-sidebar-button">
+                        <span class="material-symbols-outlined">
+                            close
+                        </span>
+                    </label>
+                    <a id="store-link" href="/store">BUTIK</a>
+                    <a id="community-link" href="/community">GEMENSKAP</a>
+                    <a id="about-link" href="/about">OM OSS</a>
+                </div>
+                <div id="icon-links" class="col d-flex justify-content-end align-items-center me-5">
+                    <div class="col d-flex justify-content-center">
+                        <form>
+                            <div class="search">
+                                <span class="material-symbols-outlined">
+                                    search
+                                </span>
+                                <div>
+                                    <input class="search-input" type="search" placeholder="SÖK PRODUKT..." @onclick="HideCart" @oninput="OnSearchInputChange" />
+                                    <div id="search-results" class="search-results">
+                                        @if (SearchResults != null && SearchResults.Count > 0 && !string.IsNullOrEmpty(Search))
+                                        {
+                                            <ul>
+                                                @foreach (var result in SearchResults)
+                                                {
+                                                    <li @onclick="() => NavigateToProduct(result.Id.ToString())">
+                                                        <span>@result.Name</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <button>
+                        <a href="login">
+                            <span id="login-button" class="material-symbols-outlined">
+                                account_circle
+                            </span>
+                        </a>
+                    </button>
+                    <button title="Favoriter är under utveckling..">
+                        <span id="wishlist-button" class="material-symbols-outlined">
+                            favorite
+                        </span>
+                    </button>
+                    <button>
+                        <span id="cart-button" class="material-symbols-outlined" @onclick="ShowCart">
+                            shopping_cart
+                        </span>
+                    </button>
+                    <p id="cart-total-products">@CartTotalProducts</p>
+                </div>
+            </div>
+        </nav>
+    </div>
+</section>
+
+<section id="main" @onclick="HideSearchResults">
+    <div class="container cart-container">
+        <div id="cart" class="cart-list"
+             style="display: @(IsCartOpen ? "block" : "none");">
+            <button id="hide-cart-button" class="btn" @onclick="HideCart">
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+            </button>
+            <div>
+                <h1>Kundkorg</h1>
+            </div>
+            <div id="cart-items" class="cart-items">
+                @if (CartItems.Items.Count == 0)
+                {
+                    <p class="mt-3">Din kundkorg är tom.</p>
+                }
+                @foreach (var item in CartItems.Items)
+                {
+                    <div class="item">
+                        <div class="image">
+                            <img src="@item.Product.GetBlobSasUrl()" />
+                        </div>
+                        <div class="name">
+                            @item.Product.Name
+                        </div>
+                        <div class="price">
+                            @((item.Product.Price * item.Quantity).ToString("0.00"))kr
+                        </div>
+                        <div class="quantity">
+                            <span class="btn minus" @onclick="() => Decrement(item)">-</span>
+                            <span>@item.Quantity</span>
+                            <span class="btn plus" @onclick="() => Increment(item)">+</span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="divider"></div>
+            <div id="cart-management">
+                <div class="col d-flex p-4">
+                    <div class="me-auto">
+                        TOTAL:
+                    </div>
+                    <div id="cart-sum">
+                        @(CartTotalPrice.ToString("0.00")) KR
+                    </div>
+                </div>
+                <div class="btn">
+                    <button id="cart-close-button" class="close btn" @onclick="ClearCart">Rensa</button>
+                    <button id="cart-checkout-buttom" class="checkout btn" @onclick="GoToPayment" disabled="@IsCartEmpty">Betala</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @Body
+</section>
+
+<section id="footer" @onclick="HideSearchResults">
+    <div class="divider"></div>
+    <div class="p-5">
+    <div class="row">
+        <div id="footer-info" class="col-5">
+            <h2>Kärra Games Corner</h2>
+                <p>Välkommen till vår spelbutik beläget i Kärra Centrum med ett brett utbud
+                    av spel för PC och diverse tillbehör. Hos oss hittar du även ett livligt
+                    community där spelentusiaster möts upp, delar tips & tricks samt kan
+                    delta i spännande evenemang! Vi strävar efter att inte bara erbjuda
+                    produkter, utan också samlingsplats där passionen för spel står i centrum!</p>
+        </div>
+        <div class="col footer-links">
+            <h2 id="foot-h2">Gemenskap</h2>
+            <ul>
+                <li><a href="/community">Forum</a></li>
+                <li><a href="/login">Medlemmar</a></li>
+                <li><a href="/community">Evenemang</a></li>
+            </ul>
+        </div>
+        <div class="col footer-links">
+            <h2 id="footer-h2">Om oss</h2>
+            <ul>
+                <li><a href="/about">Kontakta oss</a></li>
+                <li><a href="/villkor">Allmänna villkor</a></li>
+                <li><a href="/policy">Vår policy</a></li>
+            </ul>
+        </div>
+    </div>
+    </div>
+</section>
+
+@code
+{
+    private bool IsCartEmpty => !CartItems.Items.Any();
+    private bool IsCartOpen { get; set; }
+    private int CartTotalProducts => CartItems?.Items.Sum(item => item.Quantity) ?? 0;
+    private double CartTotalPrice => CartItems?.Items.Sum(item => item.Product.Price * item.Quantity) ?? 0;
+
+    private string Search { get; set; }
+    private Timer _searchTimer;
+    private List<ProductDTO> SearchResults { get; set; } = new();
+    private const int SearchDelay = 100;
+
+    private CartDTO CartItems { get; set; } = new();
+
+    private event Action CartUpdated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnChange += UpdateLocalStorage;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UpdateLocalStorage();
+        }
+    }
+
+    public void Dispose()
+    {
+        _searchTimer?.Dispose();
+    }
+
+    private async void UpdateLocalStorage()
+    {
+        CartItems = await CartService.GetCart();
+        StateHasChanged();
+    }
+
+    private async Task HideSearchResults()
+    {
+        SearchResults.Clear();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSearchInputChange(ChangeEventArgs e)
+    {
+        Search = e.Value.ToString();
+        _searchTimer?.Dispose();
+        _searchTimer = new Timer(async _ =>
+        {
+            SearchResults = await ProductService.SearchProductsAsync(Search);
+            await InvokeAsync(StateHasChanged);
+        }, null, SearchDelay, Timeout.Infinite);
+    }
+
+    private void NavigateToProduct(string productId)
+    {
+        NavigationManager.NavigateTo($"/Product/{productId}");
+        SearchResults.Clear();
+    }
+
+    private void ShowCart()
+    {
+        IsCartOpen = true;
+        UpdateLocalStorage();
+    }
+
+    private void HideCart()
+    {
+        IsCartOpen = false;
+        UpdateLocalStorage();
+    }
+
+    private async Task Increment(CartItemDTO cartItem)
+    {
+        cartItem.Quantity++;
+        await UpdateCart();
+        UpdateLocalStorage();
+    }
+
+    private async Task Decrement(CartItemDTO cartItem)
+    {
+        if (cartItem.Quantity > 1)
+        {
+            cartItem.Quantity--;
+        }
+        else
+        {
+            CartItems.Items.Remove(cartItem);
+        }
+        await UpdateCart();
+        UpdateLocalStorage();
+    }
+
+    private async Task ClearCart()
+    {
+        await CartService.RemoveCart();
+        StateHasChanged();
+    }
+
+    private async Task UpdateCart()
+    {
+        await CartService.LoadCart();
+        StateHasChanged();
+    }
+
+    private async void GoToPayment()
+    {
+        HideCart();
+        NavigationManager.NavigateTo("/payment");
+    }
+}

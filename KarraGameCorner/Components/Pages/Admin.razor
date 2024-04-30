@@ -1,0 +1,94 @@
+﻿@page "/Admin"
+@using KarraGameCorner.Shared.DTOs
+@using KarraGameCorner.Interfaces
+@using KarraGameCorner.DataAccess.Enums
+@inject IProductService<ProductDTO> ProductService
+
+<h3>Admin</h3>
+
+<div class="m-5">
+    <div>
+        <input type="text" placeholder="Namn"/>
+    </div>
+    <div>
+        <input type="text" placeholder="Pris"/>
+    </div>
+    <div>
+        <input type="text" placeholder="Beskrivning"/>
+    </div>
+    <div>
+        <input type="text" placeholder="Image"/>
+    </div>
+    <div>
+        <input type="text" placeholder="Quantity"/>
+    </div>
+    <div>
+        <input type="text" placeholder="Status"/>
+    </div>
+    <div>
+        <select>
+            <option>Placeholder</option>
+        </select>
+    </div>
+    <div>
+        <select>
+            @foreach (var espn in Enum.GetValues(typeof(EntertainmentSoftwareRatingBoard)))
+            {
+                <option>@espn</option>
+            }
+        </select>
+    </div>
+    <div>
+        <button class="btn btn-light">Lägg till produkt</button>
+    </div>
+</div>
+
+<div class="p-5">
+    <h1>Produkter</h1>
+    <br/>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Namn</th>
+            <th>Pris</th>
+            <th>Beskrivning</th>
+            <th>Kategorier</th>
+            <th>ESBN</th>
+            <th>Lager Status</th>
+            <th>Antal</th>
+        </tr>
+        </thead>
+        <tbody>
+            @foreach(var product in Products)
+                {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.Name</td>
+                    <td>@product.Price</td>
+                    <td>@product.Description</td>
+                    <td>@product.Categories</td>
+                    <td>@product.ESRB</td>
+                    <td>@product.Status</td>
+                    <td>@product.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    List<ProductDTO> Products = new List<ProductDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    async Task LoadProducts()
+    {
+        Products =  await ProductService.GetAllProducts();
+    }
+
+}

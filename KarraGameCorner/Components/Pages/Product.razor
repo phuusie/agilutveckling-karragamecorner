@@ -1,0 +1,153 @@
+﻿@page "/Product/{Id}"
+@using KarraGameCorner.Interfaces
+@using KarraGameCorner.Shared.DTOs
+@inject IProductService<ProductDTO> ProductService
+@inject ICategoryService<CategoryDTO> CategoryService
+@inject ICartService CartService
+@inject ICartItemService<CartItemDTO> CartItemService
+@inject IProductCategoryService<ProductCategoryDTO> ProductCategoryService
+
+<div id="toast-popup">
+    <div class="toast show" style="display: @(IsAddedToCart ? "block" : "none")">
+        <div class="toast-header">
+            <div class="me-auto"><span>@ViewingProduct.Name</span></div>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" @onclick="() => { IsAddedToCart = false; }"></button>
+        </div>
+        <div class="toast-body">
+            @ViewingProduct.Name har lagts till i din kundvagn.
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="product-detail" class="d-flex row">
+        <div class="row">
+            <h1 id="viewing-product-name">@ViewingProduct.Name</h1>
+        </div>
+        <div >
+            <div class="viewing-product-review">
+                @for (int i = 0; i < 5; i++)
+                {
+                    <span id="star-rating-@i" class="material-symbols-outlined">
+                        star
+                    </span>
+                }
+            </div>
+            <div id="viewing-product-category" class="col d-flex">
+                @foreach (var category in ViewingProductCategories)
+                {
+                    <div id="@category.Name.Replace(" ", "-")">
+                        <p>@category.Name</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="product-feature d-flex col">
+            <div>
+                <img id="viewing-product-image" src="@ViewingProduct.GetBlobSasUrl()" alt="@ViewingProduct.Name"/>
+            </div>
+            <div id="viewing-product-body">
+                <div>
+                    <div>
+                        <p id="viewing-product-description">@ViewingProduct.Description</p>
+                    </div>
+
+                    <div id="viewing-product-buttons">
+                        <button id="add-to-cart-button" @onclick="() => AddToCart(ViewingProduct)">Köp</button>
+                        <button id="add-to-wishlist-button" title="Favoriter är under utveckling..">Lägg till som favorit</button>
+                    </div>
+
+                    <div>
+                        <h3 id="viewing-product-price">@ViewingProduct.Price KR</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private ProductDTO ViewingProduct { get; set; } = new();
+    private List<CategoryDTO> ViewingProductCategories { get; set; } = new();
+    private List<ProductCategoryDTO> Categories { get; set; } = new();
+    CartDTO CartItems { get; set; } = new();
+    CartItemDTO? CartItem { get; set; } = new();
+    bool IsAddedToCart { get; set; } = false;
+
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnChange += UpdateLocalStorage;
+        await LoadProduct();
+        await LoadCategories();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ViewingProduct == null || ViewingProduct.Id.ToString() != Id)
+        {
+            await LoadProduct();
+            await LoadCategories();
+        }
+    }
+
+    private async Task LoadProduct()
+    {
+        if (int.TryParse(Id, out int id))
+        {
+            ViewingProduct = await ProductService.GetProductById(id);
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+
+        Categories = await ProductCategoryService.GetAllProductCategories();
+        var productCategories = Categories
+            .Where(pc => pc.ProductId == ViewingProduct.Id).ToList();
+
+        var categories = await CategoryService.GetAllCategories();
+        ViewingProductCategories = productCategories
+            .Select(pc => categories
+                .First(c => c.Id == pc.CategoryId))
+            .ToList();
+
+        StateHasChanged();
+    }
+
+
+    private async void UpdateLocalStorage()
+    {
+        CartItems = await CartService.GetCart();
+        StateHasChanged();
+    }
+
+    private async Task AddToCart(ProductDTO product)
+    {
+        CartItem = new CartItemDTO
+        {
+            Id = product.Id,
+            Product = product,
+            Quantity = 1
+        };
+
+        await CartService.AddToCart(CartItem);
+        await CartService.LoadCart();
+        UpdateLocalStorage();
+        IsAddedToCart = true;
+        StateHasChanged();
+        HideToastAfterDelay();
+    }
+
+    private async Task HideToastAfterDelay()
+    {
+        await Task.Delay(2000);
+        IsAddedToCart = false;
+        StateHasChanged();
+    }
+}

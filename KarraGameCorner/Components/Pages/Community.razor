@@ -1,0 +1,245 @@
+﻿@page "/Community"
+
+<div class="row entering">
+    <div id="gemenskap-evenemang" class="header-container">
+        <div class="container-custom">
+            <div class="row g-0">
+                <div class="col-12 text-content">
+                    <h1 class="header-title">EVENEMANG</h1>
+                     <p class="header-subtitle">
+                         Spana in vårt schema för att inte missa kommande spelkvällar
+                         och specialhändelser! Medan våra evenemang kan vara sporadiska,
+                         är spänningen alltid på topp när vi samlas för att spela. 
+                         Oavsett om det är en spontan turnering eller en avslappnad spelkväll, 
+                         finns det alltid något kul att se fram emot. Håll dig uppdaterad och var
+                         med på äventyret!
+                    </p> 
+                    <h3 class="header-subtitle">Scrolla ner för att hitta kommande evenemang!</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-custom">
+
+        <div id="holiday-gaming-event" class="row content-row g-0">
+            <div id="holiday-gaming-event-text" class="col-lg-6 dark-background content-column p-5">
+                <h2 class="section-title">Inbjudan till Speldag på Kärra Games Corner</h2>
+                <p class="section-text">
+                    Hej alla skolungdommar!
+                </p>
+                <p class="section-text">
+                    Är du nyfiken på spel & teknik?
+                    Vill du ha en rolig & lärorik eftermiddag med nya vänner?
+                    Då är du välkommen till Kärra Games Corner!
+                </p>
+                <h3 class="section-title">Vad kan du göra på speldagen?</h3>
+                <ul class="align-self-center">
+                    <li>Tävla i en LAN-turnering i Counter Strike 2</li>
+                    <li>Prova på VR-spel & upplev spelvärden på ett helt nytt sätt</li>
+                    <li>Lär dig grunderna i spelprogrammering & skapa ditt eget spel</li>
+                    <li>Fika & umgås med andra spelintresserade ungdomar</li>
+                </ul>
+                <h3 class="section-title">När & var?</h3>
+                <p class="section-text">
+                    Lördag 16 juni kl. 16-22 på Kärra Games Corner, Kärra Torg 5, 425 34 Göteborg
+                </p>
+                <h3 class="section-title">Anmälan & kostnad:</h3>
+                <p class="section-text">
+                    Anmäl dig via Kärra Games Corners webbplats eller via e-post till kgc@info.se.
+                    Anmäl senast 10 juni. Kostnad: 199kr.
+                </p>
+                <div id="sign-up-button2" class="book-button-placement"><button @onclick="ScrollToForm" class="book-button">Boka Nu</button></div>
+            </div>
+            <div id="lanbild1" class="col-lg-6">
+                <img src="lanbild1.jpg" />
+            </div>
+        </div>
+
+        <div id="retro-gaming-event" class="row content-row g-0">
+            <div id="lanbild2" class="col-lg-6 light-background">
+                <img src="lanbild2.jpg" class="img-fluid" />
+            </div>
+            <div id="retro-gaming-event-text" class="col-lg-6 dark-background content-column p-5">
+                <h2 class="section-title">Inbjudan till Retrospelkväll på Kärra Games Corner</h2>
+                <p class="section-text">
+                    Hej retrospelsentusiaster!
+                </p>
+                <p class="section-text">
+                    Älskar du gamla klassiska spel som Super Mario, Sonic & Pacman?
+                    Vill du ha en nostalgisk kväll med gamla favoriter & nya vänner?
+                    Då är du välkommen till Kärra Games Corner!
+                </p>
+                <h3 class="section-title">Vad kan du göra på Retrospelkvällen?</h3>
+                <ul class="align-self-center">
+                    <li>Spela klassiska arkadspel & konsolspel från 80- & 90-talet</li>
+                    <li>Delta i en turnering i Street Fighter II & vinn fina priser</li>
+                    <li>Prova på VR-spel & upplev spelvärden på ett helt nytt sätt</li>
+                    <li>Fika & umgås med andra retrospelsentusiaster</li>
+                </ul>
+                <h3 class="section-title">När & var?</h3>
+                <p class="section-text">
+                    Fredag 27 juli kl. 16-22 på Kärra Games Corner, Kärraw Torg 5, 425 34 Göteborg
+                </p>
+                <h3 class="section-title">Anmälan & kostnad:</h3>
+                <p class="section-text">
+                    Anmäl dig via Kärra Games Corners webbplats
+                    eller via e-post till kgc@info.se. Anmäl senast 20 juli.
+                    Kostnad: 249 kr, inkluderar snacks och en välkomstdryck.
+                </p>
+                <div id="sign-up-button3" class="book-button-placement"><button @onclick="ScrollToForm" class="book-button">Boka Nu</button></div>
+            </div>
+        </div>
+
+        <div id="event-sign-up" class="row content-row">
+            <div id="event-contact-information" class="col-lg-6 dark-background content-column p-5">
+                <h2 class="section-title">Kontakta Oss</h2>
+                <p class="section-text">
+                    Har du frågor eller behöver du hjälp med bokningen? Tveka inte att kontakta oss!
+                </p>
+                <ul class="contact-info">
+                    <li><strong>Adress:</strong> Kärra Games Corner, Kärra Torg 5, 425 34 Göteborg</li>
+                    <li><strong>Telefon:</strong> 031-645 50 00</li>
+                    <li><strong>E-post:</strong> kgc@info.se</li>
+                </ul>
+            </div>
+
+            <div id="sign-up-form" class="col-lg-6 light-background content-column p-5">
+                <h2 class="section-title">Anmäl dig till våra evenemang</h2>
+                <form>
+                    <div class="mb-4">
+                        <label for="eventName" class="form-label">Välj evenemang:</label>
+                        <select 
+                            @bind="EventPriceString" 
+                            class="form-select" 
+                            id="eventName" 
+                            required>
+                            <option value="">...</option>
+                            <option value="199">Speldag på Kärra Games Corner</option>
+                            <option value="249">Retrospelkväll på Kärra Games Corner</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="price" class="form-label">Kostnad:</label>
+                        <input type="text" class="form-control" id="price" value="@($"{Price} kr")" disabled>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="participantCount" class="form-label">Antal deltagare:</label>
+                        <input type="number" @bind="ParticipantCount" @oninput="UpdateParticipantCount" class="form-control" required min="1">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="contactEmail" class="form-label">Din e-post:</label>
+                        <input type="email" @bind="ContactEmail" class="form-control" required>
+                    </div>
+
+                    <button type="button" @onclick="ShowPopup" class="btn btn-primary text-light">Skicka anmälan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (InvalidRegister)
+    {
+        <div id="popup-element" class="popup">
+            <div class="popup-content">
+                <span>Du är registrerad till eventet!</span>
+                <button @onclick="ClosePopup" class="close-button">✕</button>
+            </div>
+        </div>
+    }
+
+    <script>
+        function scrollToElement(elementId) {
+            var element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function scrollToPopup() {
+            var popup = document.getElementById("popup-element");
+            if (popup) {
+                popup.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    </script>
+
+@inject IJSRuntime JsRuntime
+
+@code {
+
+    private bool InvalidRegister { get; set; } = false;
+    private string _eventPriceString;
+
+    private int EventPrice { get; set; } = 0;
+    private int ParticipantCount { get; set; } = 0;
+    private int Price { get; set; } = 0;
+    public string ContactEmail { get; set; } = "";
+
+    public string EventPriceString
+    {
+        get => _eventPriceString;
+        set
+        {
+            _eventPriceString = value;
+            UpdateEventPrice();
+        }
+    }
+
+    private void UpdateEventPrice()
+    {
+        if (int.TryParse(EventPriceString, out int eventPrice))
+        {
+            EventPrice = eventPrice;
+            ParticipantCount = 1;
+            UpdatePrice();
+        }
+    }
+
+    private void UpdateParticipantCount(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value.ToString(), out int participantCount))
+        {
+            ParticipantCount = participantCount;
+            UpdatePrice();
+        }
+    }
+
+    private void UpdatePrice()
+    {
+        int totalPrice = EventPrice * ParticipantCount;
+        Price = totalPrice;
+    }
+
+    private async Task ShowPopup()
+    {
+        InvalidRegister = true;
+        ClearForm();
+        await JsRuntime.InvokeVoidAsync("scrollToPopup");
+        await JsRuntime.InvokeVoidAsync("scrollToElement", "sign-up-form");
+    }
+
+    private void ClearForm() {
+
+        EventPriceString = ""; 
+        EventPrice = 0;
+        ParticipantCount = 0;
+        ContactEmail = "";
+        Price = 0;
+    }
+
+    private void ClosePopup()
+    {
+        InvalidRegister = false;
+        StateHasChanged();
+    }
+
+    private async Task ScrollToForm()
+    {
+        await JsRuntime.InvokeVoidAsync("scrollToElement", "sign-up-form");
+    }
+}

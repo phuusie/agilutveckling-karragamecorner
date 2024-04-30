@@ -1,0 +1,5 @@
+﻿CREATE TABLE [dbo].[Carts] (
+    [Id] INT IDENTITY (1, 1) NOT NULL,
+    CONSTRAINT [PK_Carts] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
